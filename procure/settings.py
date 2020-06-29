@@ -27,10 +27,10 @@ SECRET_KEY = os.environ.get('PROCURE_SECRET')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = (os.environ.get('DEBUG_VALUE') == 'True')
-DEBUG = True
-ALLOWED_HOSTS = ['localhost']
+DEBUG = os.environ.get('DEBUG_VALUE')
+ALLOWED_HOSTS = ['localhost', 'buyy.herokapp.com']
 
-
+CSRF_COOKIE_SECURE = True
 # Application definition
 
 INSTALLED_APPS = [
@@ -150,6 +150,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 CORS_ORIGIN_WHITELIST = (
     'google.com',
+    'buyy.herokuapp.com',
     # 'hostname.example.com'
 )
 
@@ -252,6 +253,5 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-CSRF_COOKIE_SECURE = True
 # ACCOUNT_ADAPTER = 'accounts.adapters.CustomUserAccountAdapter'
 django_heroku.settings(locals())
