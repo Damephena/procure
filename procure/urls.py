@@ -33,7 +33,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 from accounts.views import CustomConfirmEmailView, GoogleLogin
-from procure.other_urls import urlpatterns as others
+# from procure.other_urls import urlpatterns as others
 
 schema_view = get_schema_view(
     openapi.Info(
