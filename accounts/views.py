@@ -4,6 +4,7 @@ from django.shortcuts import render, reverse, redirect
 
 from rest_framework import viewsets, generics, status
 from rest_framework.response import Response
+from rest_framework.permissions import IsAdminUser
 # from rest_auth.registration.views import RegisterView
 from allauth.account.views import ConfirmEmailView
 from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
@@ -28,6 +29,27 @@ class UserProfile(generics.ListAPIView):
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
 
+class UserViewSet(viewsets.ModelViewSet):
+    '''
+    Exposes API endpoint for Admin access only for `User` model.
+    '''
+    queryset = User.objects.all()
+    serializer_class = serializers.UserCompleteInfo
+    permission_classes = (IsAdminUser, )
+
+
+# class CreateUserView(generics.CreateAPIView):
+#     def post(self, request):
+#         if not request.data['password1']:
+#             raise ValueError({"error": "password required"})
+#         serializer_class = serializers.RegisterSerializer
+#         serializer = serializers.RegisterSerializer(data=request.data)
+
+#         if serializer.is_valid(raise_exception=True):
+#             serializer.save()
+#             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+
+
 class CustomConfirmEmailView(ConfirmEmailView):
     def get(self, *args, **kwargs):
         try:
@@ -38,11 +60,6 @@ class CustomConfirmEmailView(ConfirmEmailView):
         # redirect_url = reverse('rest_login', args=(user.id,))
         redirect_url = reverse('rest_login')
         return redirect(redirect_url)
-
-
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = serializers.UserSerializer
 
 
 class GoogleLogin(SocialLoginView):

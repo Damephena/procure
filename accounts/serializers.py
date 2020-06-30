@@ -26,6 +26,7 @@ from accounts.models import User
 
 User = get_user_model()
 class UserSerializer(ModelSerializer):
+    '''API endpoint available to users'''
     class Meta:
         model = User
         fields = (
@@ -36,7 +37,23 @@ class UserSerializer(ModelSerializer):
             'created_at',
         )
 
-
+class UserCompleteInfo(ModelSerializer):
+    '''API endpoint available to only `Admin` users'''
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'email',
+            'first_name',
+            'last_name',
+            'password',
+            'is_superuser',
+            'is_admin',
+            'is_staff',
+            'is_active',
+            'created_at',
+            'last_login',
+        )
 
 class RegisterSerializer(serializers.Serializer):
     '''

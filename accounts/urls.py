@@ -6,8 +6,8 @@ from rest_auth.registration.views import (
 
 from accounts.views import UserProfile, UserViewSet, FacebookLogin, TwitterLogin, GoogleLogin
 
-# router = SimpleRouter()
-# router.register('', UserViewSet, basename='users')
+router = SimpleRouter()
+router.register('admin/users', UserViewSet, basename='users')
 
 urlpatterns = [
     path('profile/', UserProfile.as_view(), name='profile'),
@@ -19,4 +19,4 @@ urlpatterns = [
     # ),
     # router.urls
 ]
-# urlpatterns = router.urls
+urlpatterns += router.urls
