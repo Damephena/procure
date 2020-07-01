@@ -4,13 +4,21 @@ from rest_auth.registration.views import (
     SocialAccountListView, SocialAccountDisconnectView
 )
 
-from accounts.views import UserProfile, UserViewSet, FacebookLogin, TwitterLogin, GoogleLogin
+from accounts.views import (
+    UserProfile, 
+    AllUsersView, 
+    AllAdminsView,
+    RegisterAdminView,
+)
 
-router = SimpleRouter()
-router.register('admin/users', UserViewSet, basename='users')
+# router = SimpleRouter()
+# router.register('admins', AdminViewSet, basename='admins')
 
 urlpatterns = [
     path('profile/', UserProfile.as_view(), name='profile'),
+    path('admin/users/', AllUsersView.as_view(), name='user-list'),
+    path('admins/', AllAdminsView.as_view(), name='admin-list'),
+    path('admin/register', RegisterAdminView.as_view(), name='admin-create'),
     # path('google/', GoogleLogin.as_view(), name='google_login'),
     # path('socialaccounts/', SocialAccountListView.as_view(), name='social_account_list'
     # ),
@@ -19,4 +27,4 @@ urlpatterns = [
     # ),
     # router.urls
 ]
-urlpatterns += router.urls
+# urlpatterns += router.urls

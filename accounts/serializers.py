@@ -1,3 +1,4 @@
+import django.contrib.auth.password_validation as validators
 from django.http import HttpRequest
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth import get_user_model
@@ -23,10 +24,11 @@ from rest_framework.serializers import ModelSerializer, CharField
 from rest_auth.registration.serializers import RegisterSerializer
 
 from accounts.models import User
+from django.core import exceptions
 
 User = get_user_model()
 class UserSerializer(ModelSerializer):
-    '''API endpoint available to users'''
+    '''Serializer for fetching profile to regular users.'''
     class Meta:
         model = User
         fields = (
@@ -37,8 +39,9 @@ class UserSerializer(ModelSerializer):
             'created_at',
         )
 
+
 class UserCompleteInfo(ModelSerializer):
-    '''API endpoint available to only `Admin` users'''
+    '''User serializer which is only available to only `Admin` usertype'''
     class Meta:
         model = User
         fields = (
@@ -46,14 +49,69 @@ class UserCompleteInfo(ModelSerializer):
             'email',
             'first_name',
             'last_name',
-            'password',
+            # 'password',
             'is_superuser',
-            'is_admin',
             'is_staff',
             'is_active',
             'created_at',
             'last_login',
         )
+
+
+class AdminRegisterSerializer(serializers.ModelSerializer):
+    '''
+    Admin registration serializer.
+    '''
+    password1 = serializers.CharField(
+        max_length=100, 
+        required=True, 
+        write_only=True,
+    )
+    password2 = serializers.CharField(
+        max_length=100, 
+        required=True, 
+        write_only=True,
+    )
+
+
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'email',
+            'password1',
+            'password2',
+            'first_name',
+            'last_name',
+        )
+    
+    def validate(self, data):
+        password = data.get('password1')
+        confirm_password = data.get('password2')
+        errors = dict()
+
+        if password != confirm_password:
+            message = "Password mismatch!"
+            errors['password'] = ["Password mismatch!"]
+        
+        try:
+            validators.validate_password(password)
+        except exceptions.ValidationError as err:
+            errors['password'] = list(err.messages)
+        
+        if errors:
+            raise serializers.ValidationError(errors)
+        return super(AdminRegisterSerializer, self).validate(data)
+    
+    def create(self, validated_data):
+        admin = User.objects.create_superuser(
+            email=validated_data['email'].lower(),
+            password=validated_data['password1'],
+            first_name=validated_data.get('first_name', ''),
+            last_name=validated_data.get('last_name', '')
+        )
+        return admin
+
 
 class RegisterSerializer(serializers.Serializer):
     '''

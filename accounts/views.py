@@ -29,25 +29,56 @@ class UserProfile(generics.ListAPIView):
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
 
-class UserViewSet(viewsets.ModelViewSet):
-    '''
-    Exposes API endpoint for Admin access only for `User` model.
-    '''
-    queryset = User.objects.all()
+# class UserViewSet(viewsets.ModelViewSet):
+#     '''
+#     Exposes API endpoint for Admin access only for `User` model.
+#     '''
+#     queryset = User.objects.all()
+#     serializer_class = serializers.UserCompleteInfo
+#     permission_classes = (IsAdminUser, )
+
+
+class AllUsersView(generics.ListAPIView):
+    '''Returns's all users. Only avaliable to `admin` usertype.'''
     serializer_class = serializers.UserCompleteInfo
     permission_classes = (IsAdminUser, )
 
+    def get(self, request):
+        queryset = User.objects.filter(is_staff=False)
+        serializer = serializers.UserCompleteInfo(queryset, many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
 
-# class CreateUserView(generics.CreateAPIView):
-#     def post(self, request):
-#         if not request.data['password1']:
-#             raise ValueError({"error": "password required"})
-#         serializer_class = serializers.RegisterSerializer
-#         serializer = serializers.RegisterSerializer(data=request.data)
 
-#         if serializer.is_valid(raise_exception=True):
-#             serializer.save()
-#             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+class AllAdminsView(generics.ListAPIView):
+    '''
+    API endpoint for Listing all Admins. Only available to other `admin` usertypes.
+    '''
+    serializer_class = serializers.UserCompleteInfo
+    permission_classes = (IsAdminUser,)
+
+    def get(self, request):
+        queryset = User.objects.filter(is_staff=True)
+        serializer = serializers.UserCompleteInfo(queryset, many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+
+class RegisterAdminView(generics.CreateAPIView):
+    '''
+    API endpoint for admin registration.
+    '''
+    queryset = User.objects.all()
+    serializer_class = serializers.AdminRegisterSerializer
+
+    def post(self, request):
+        serializer = serializers.AdminRegisterSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+        return Response(data=serializer._errors)   
+
+
+class UserView(generics.RetrieveUpdateDestroyAPIView):
+    pass
 
 
 class CustomConfirmEmailView(ConfirmEmailView):
