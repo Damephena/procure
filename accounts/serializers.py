@@ -23,7 +23,6 @@ from requests.exceptions import HTTPError
 from rest_framework.serializers import ModelSerializer, CharField
 from rest_auth.registration.serializers import RegisterSerializer
 
-from accounts.models import User
 from django.core import exceptions
 
 User = get_user_model()
