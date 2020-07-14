@@ -29,7 +29,7 @@ class ProductCategory(models.Model):
 
 
 class ProductStatus(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -50,7 +50,7 @@ class ProductTag(models.Model):
 class Product(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     category = models.ForeignKey('Category', on_delete=models.CASCADE, to_field='id')
-    product_status = models.ForeignKey('ProductStatus', on_delete=models.CASCADE, to_field='id')
+    product_status = models.ForeignKey('ProductStatus', on_delete=models.CASCADE, to_field='name')
     sku = models.CharField(max_length=150, unique=True)
     name = models.CharField(max_length=150)
     description = models.TextField(default='No description')
