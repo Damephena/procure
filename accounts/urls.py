@@ -5,8 +5,8 @@ from rest_auth.registration.views import (
 )
 
 from accounts.views import (
-    UserProfile, 
-    AllUsersView, 
+    UserProfile,
+    AllUsersView,
     AllAdminsView,
     RegisterAdminView,
     UserDetailView,
