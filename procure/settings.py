@@ -27,7 +27,8 @@ SECRET_KEY = os.environ.get('PROCURE_SECRET')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = (os.environ.get('DEBUG_VALUE') == 'True')
-DEBUG = os.environ.get('DEBUG_VALUE')
+# DEBUG = os.environ.get('DEBUG_VALUE')
+DEBUG = True
 ALLOWED_HOSTS = ['localhost', 'buyy.herokapp.com']
 
 CSRF_COOKIE_SECURE = True
@@ -59,6 +60,7 @@ INSTALLED_APPS = [
 
     # local
     'accounts',
+    'products',
 ]
 
 MIDDLEWARE = [
