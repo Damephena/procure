@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'django_filters',
     'corsheaders',
+    'storages',
 
     # local
     'accounts',
@@ -155,6 +156,7 @@ CORS_ORIGIN_WHITELIST = (
     'google.com',
     'http://buyy.herokuapp.com',
     'https://shirt-shop.netlify.app',
+    'https://buyy.s3.eu-west-2.amazonaws.com',
 )
 
 CSRF_TRUSTED_ORIGINS = (
@@ -169,15 +171,20 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
-    # 'DEFAULT_FILTER_BACKENDS': (
-    #     'django_filters.rest_framework.DjangoFilterBackend'
-    # ),
-    'TEST_REQUEST_RENDERER_CLASSES': [
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ),
+    'TEST_REQUEST_RENDERER_CLASSES': (
         'rest_framework.renderers.MultiPartRenderer',
         'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.TemplateHTMLRenderer'
-    ],
+        'rest_framework.renderers.TemplateHTMLRenderer',
+    ),
 
+    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 2
     # 'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }
 
@@ -260,5 +267,16 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
+
+AWS_S3_SIGNATURE_VERSION = 's3v4'
+AWS_S3_REGION_NAME = 'eu-west-2'
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = None
+AWS_S3_VERIFY = True
+# AWS_S3_OBJECT_PARAMETERS = { 'CacheControl': 'max-age=86400' }
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 # ACCOUNT_ADAPTER = 'accounts.adapters.CustomUserAccountAdapter'
 django_heroku.settings(locals())

@@ -113,11 +113,14 @@ class AdminRegisterSerializer(serializers.ModelSerializer):
 
 
 class RegisterSerializer(serializers.Serializer):
+    # '''
+    # Custom registration serializer to override rest-auth.registration version.
+    # This prevents the `username` field from showing up.
+    # Got code from django-rest-auth doc and modified 
+    # [register serializer]("https://github.com/Tivix/django-rest-auth/blob/master/rest_auth/registration/serializers.py")
+    # '''
     '''
-    Custom registration serializer to override rest-auth.registration version.
-    This prevents the `username` field from showing up.
-    Got code from django-rest-auth doc and modified 
-    [register serializer]("https://github.com/Tivix/django-rest-auth/blob/master/rest_auth/registration/serializers.py")
+    Register as a user.
     '''
     email = serializers.EmailField(required=allauth_settings.EMAIL_REQUIRED)
     password1 = serializers.CharField(write_only=True)
