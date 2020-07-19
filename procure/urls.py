@@ -13,6 +13,8 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf.urls import url
@@ -33,7 +35,6 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 from accounts.views import CustomConfirmEmailView, GoogleLogin
-# from procure.other_urls import urlpatterns as others
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -45,7 +46,6 @@ schema_view = get_schema_view(
       license=openapi.License(name='BSD License'),
     ),
     public = True,
-    # patterns = others,
     permission_classes = (permissions.AllowAny,),
 )
 
@@ -53,7 +53,9 @@ urlpatterns = [
     # path('', TemplateView.as_view(template_name="social_app/index.html")), # <--
     path('admin/', admin.site.urls),
     path('api/v1/accounts/', include('accounts.urls')),
+    path('api/v1/products/', include('products.urls')),
 
+    path('api-auth/', include('rest_framework.urls')), # allows login and out for browser API
     re_path('api/v1/rest-auth/registration/account-confirm-email/(?P<key>.+)/', CustomConfirmEmailView.as_view(), name='account_confirm_email'),
     # re_path('api/v1/rest-auth/registration/account-confirm-email/(?P<key>.+)/', confirm_email, name='account_confirm_email'),
     
@@ -72,7 +74,7 @@ urlpatterns = [
     url(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     url(r'^swagger/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     url(r'^redoc/$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # urlpatterns = [
 #     # path('', TemplateView.as_view(template_name="social_app/index.html")), # <--
