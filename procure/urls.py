@@ -54,6 +54,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/accounts/', include('accounts.urls')),
     path('api/v1/products/', include('products.urls')),
+    path('api/v1/orders/', include('orders.urls')),
 
     path('api-auth/', include('rest_framework.urls')), # allows login and out for browser API
     re_path('api/v1/rest-auth/registration/account-confirm-email/(?P<key>.+)/', CustomConfirmEmailView.as_view(), name='account_confirm_email'),
