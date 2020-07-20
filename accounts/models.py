@@ -4,6 +4,8 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.utils.translation import ugettext_lazy as _
 
 from phonenumber_field.modelfields import PhoneNumberField
+from django_countries.fields import CountryField
+
 from accounts.managers import CustomManager
 
 
@@ -47,16 +49,20 @@ class Address(models.Model):
         ('M', 'Male'),
         ('N', 'Unspecified'),
     ]
-    customer = models.ForeignKey('User', on_delete=models.CASCADE, to_field='id')
+    user = models.ForeignKey('User', on_delete=models.CASCADE, to_field='id')
     phone_number = PhoneNumberField(blank=True, null=True)
-    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, default='N')
+    # gender = models.CharField(max_length=1, choices=GENDER_CHOICES, default='N')
     address_line_1 = models.TextField()
     address_line_2 = models.TextField(blank=True, null=True)
     address_line_3 = models.TextField(blank=True, null=True)
     address_line_4 = models.TextField(blank=True, null=True)
     town_city = models.TextField(help_text='Enter residing city or town')
     state = models.CharField(max_length=50)
-    country = models.CharField(max_length=50)
+    country = CountryField(blank_label='(select country)', multiple=False)
+
+
+    class Meta:
+        verbose_name_plural = 'Addresses'
 
     def __str__(self):
         return self.customer.first_name + ':' + self.country
