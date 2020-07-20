@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'django_filters',
     'corsheaders',
     'storages',
+    'django_countries',
 
     # local
     'accounts',
