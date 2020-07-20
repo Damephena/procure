@@ -65,6 +65,7 @@ class ImageUploadView(views.APIView):
 
 class ProductReadOnlyViewSet(viewsets.ReadOnlyModelViewSet):
     '''List and retrieve all products.'''
+    lookup_field = 'slug'
     serializer_class = serializers.ProductSerializer
     queryset = Product.objects.all()
     permission_classes = (AllowAny,)

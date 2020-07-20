@@ -16,6 +16,8 @@ class ProductSerializer(serializers.ModelSerializer):
         model = mod.Product
         exclude = ['created_at', 'updated_at', 'sku']
         read_only_kwargs = ['id']
+        lookup_field = 'slug'
+        extra_kwargs = {'url': {'lookup_field':'slug'}}
         depth = 1
 
 

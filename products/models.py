@@ -1,5 +1,6 @@
 import uuid
 from django.db import models
+from django.utils.text import slugify
 
 
 class Category(models.Model):
@@ -28,12 +29,6 @@ class Coupon(models.Model):
 
     def __str__(self):
         return self.description
-
-# class ProductCategory(models.Model):
-#     category = models.ForeignKey('Category', on_delete=models.CASCADE, to_field='id')
-#     product_sku = models.ForeignKey('Product', on_delete=models.CASCADE, to_field='sku')
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
 
 
 class ProductStatus(models.Model):
@@ -73,6 +68,7 @@ class Product(models.Model):
     product_status = models.ForeignKey('ProductStatus', on_delete=models.CASCADE, to_field='name')
     tags = models.ManyToManyField(Tag)
     product_image = models.ManyToManyField(ProductImage)
+    slug = models.SlugField(blank=True, unique=True)
     sku = models.CharField(max_length=150, unique=True)
     name = models.CharField(max_length=150, unique=True)
     description = models.TextField(default='No description', blank=True)
@@ -82,6 +78,10 @@ class Product(models.Model):
     taxable = models.BooleanField(default=False, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super(Product, self).save(*args, **kwargs)
 
     class Meta:
         ordering = ['name']
