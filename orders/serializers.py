@@ -10,12 +10,13 @@ class AddressSerializer(CountryFieldMixin, serializers.ModelSerializer):
     class Meta:
         model = Address
         fields = '__all__'
+        read_only_fields = ['user']
 
 
 class OrderProductSerializer(serializers.ModelSerializer):
-    user = serializers.HiddenField(
-        default=serializers.CurrentUserDefault()
-    )
+    # user = serializers.HiddenField(
+    #     default=serializers.CurrentUserDefault()
+    # )
     class Meta:
         model = OrderProduct
         fields = '__all__'
@@ -33,14 +34,15 @@ class CheckoutSerializer(serializers.ModelSerializer):
     order_items = OrderProductSerializer(many=True, read_only=True)
     total = serializers.SerializerMethodField()
     items_quantity = serializers.SerializerMethodField()
+    shipping_address = AddressSerializer(many=False, read_only=True)
     class Meta:
         model = Order
-        # fields = '__all__'
-        exclude = ['updated_at']
-        extra_kwargs = {
-            'total_price': 'total',
-            'items_quantity': 'items_quantity'
-        }
+        fields = '__all__'
+        # exclude = ['updated_at']
+        # extra_kwargs = {
+        #     'total_pricess': 'total',
+        #     'items_quantity': 'items_quantity'
+        # }
 
     def get_total(self, obj):
         return obj.get_total()
@@ -61,6 +63,8 @@ class CheckoutSerializer(serializers.ModelSerializer):
 
 class OrderSerializer(serializers.ModelSerializer):
     order_items = OrderProductSerializer(many=True, read_only=True)
+    # shipping_address = AddressSerializer(many=False, read_only=True)
     class Meta:
         model = Order
         fields = '__all__'
+        # exclude = ['updated_at', ]

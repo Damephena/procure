@@ -11,6 +11,7 @@ import orders.serializers as serializers
 from orders.models import OrderProduct, Order
 
 from products.models import Product
+from accounts.models import Address
 from utils.permissions import IsOwner, AnonCreateAndUpdateOwnerOnly
 
 
@@ -19,17 +20,49 @@ class OrderSummaryView(generics.ListAPIView):
     queryset = Order.objects.all()
 
     def get(self, request):
-        queryset = Order.objects.get(user=self.request.user, ordered=False)
-        seralizer = self.serializer_class(queryset, many=False)
-        return Response(data=seralizer.data, status=status.HTTP_200_OK)
+        order = Order.objects.get(user=self.request.user, ordered=False)
+        order.refresh_from_db()
+        serializer = self.serializer_class(order, many=False)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
 
-class CheckoutView(generics.ListCreateAPIView):
+
+
+class CheckoutView(generics.ListAPIView):
+    # serializer_class = (serializers.CheckoutSerializer, serializers.AddressSerializer,)
     serializer_class = serializers.CheckoutSerializer
 
     def get(self, request):
-        queryset = Order.objects.filter(user=self.request.user, ordered=False)
-        serializer = self.serializer_class(queryset, many=False)
+        order = Order.objects.get(user=self.request.user, ordered=False)
+        order.refresh_from_db()
+        serializer = self.serializer_class(order, many=False)
+        
+        if not order.shipping_address:
+            address_queryset = Address.objects.filter(user=self.request.user)
+            # address_serializer = serializers.AddressSerializer(data=address_queryset, many=False)
+            if address_queryset.exists():
+                order.shipping_address = address_queryset[0]
+                order.save()
+
+                return Response(data=serializer.data, status=status.HTTP_200_OK)
+            return Response({'error': 'Kindly provide a shipping address'}, status=status.HTTP_406_NOT_ACCEPTABLE)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+
+class AddressCreateView(generics.CreateAPIView):
+    serializer_class = serializers.AddressSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+        return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AddressUpdateView(generics.RetrieveUpdateAPIView):
+    serializer_class = serializers.AddressSerializer
+    queryset = Address.objects.all()
+    lookup_field = 'user'
 
 
 # class PaymentViewSet(viewsets.ModelViewSet):
@@ -144,6 +177,7 @@ class AddToCartView(generics.CreateAPIView):
             order = order_qs[0]
             # serializer = self.serializer_class[1](order_item)
             cart_serializer = self.serializer_class[1](order_item)
+            
             # check if the order item is in the order
             if order.order_items.filter(product__slug=item.slug).exists():
                 order_item.quantity += 1
@@ -151,12 +185,10 @@ class AddToCartView(generics.CreateAPIView):
                 
                 return Response(data={
                     'message': 'This item has been updated',
-                    # 'cart': serializer.data.get('order_items')
                     'cart': cart_serializer.data,
                     }, status=status.HTTP_200_OK)
             else:
                 order.order_items.add(order_item)
-                # serializer = self.serializer_classes[0](order)
                 return Response(data={
                     'message': 'This product has been added to your cart',
                     'cart' : cart_serializer.data,
@@ -172,17 +204,17 @@ class AddToCartView(generics.CreateAPIView):
 
             if order_serializer.is_valid(raise_exception=True):
                 order_serializer.save()
-                # cart_serializer = self.serializer_class[1](order_item)
+                cart_serializer = self.serializer_class[1](order_item)
                 return Response(data={
                     'message' : 'New cart has been created',
-                    # 'cart': cart_serializer.data,
-                    'order': order_serializer.data,
+                    'cart': cart_serializer.data,
+                    # 'order': order_serializer.data,
                     }
                     , status=status.HTTP_201_CREATED)
 
            
 class RemoveFromCartView(generics.CreateAPIView):
-    serializer_classes = (serializers.OrderSerializer, serializers.OrderProductSerializer,)
+    serializer_class = (serializers.OrderSerializer, serializers.OrderProductSerializer,)
 
     def post(self, request, slug):
         
@@ -199,28 +231,31 @@ class RemoveFromCartView(generics.CreateAPIView):
                 )[0]
                 order.order_items.remove(order_item)
                 order_item.delete()
-                order_serializer = self.serializer_classes[0](order)
-                cart_serializer = self.serializer_classes[1](order_item)
+                # order_serializer = self.serializer_class[0](order)
+                cart_serializer = self.serializer_class[1](order_item)
                 return Response(data={
                 'message': 'This product has been removed to your cart',
                 'cart': cart_serializer.data,
-                'order': order_serializer.data
+                # 'order': order_serializer.data
                 },
                 status=status.HTTP_200_OK
                 )
             else:
-                order_serializer = self.serializer_classes[0](order)
+                # cart_serializer = self.serializer_class[1](order_item)
+                order_serializer = self.serializer_class[0](order)
                 return Response(data={
                     'error': 'This product is not in your cart',
-                    'order': order_serializer.data
+                    # 'cart': cart_serializer.data,
+                    # 'order': order_serializer.data.get('order_items')
+                    'cart': order_serializer.data.get('order_items')
                 },
                 status=status.HTTP_404_NOT_FOUND
                 )
-        order_serializer = self.serializer_classes[0](order_qs)
+        order_serializer = self.serializer_class[0](order_qs)
         return Response(data={
             'error': 'You do not have an active order',
-            'order': order_serializer.errors
-        })
+            'order': order_serializer.data
+        }, status=status.HTTP_404_NOT_FOUND)
 
 
 class RemoveSingleItemView(generics.CreateAPIView):
@@ -252,14 +287,14 @@ class RemoveSingleItemView(generics.CreateAPIView):
                 return Response(data={
                     'message': 'This product quantity has been updated',
                     'cart': cart_serializer.data,
-                    'order': order_serializer.data
+                    # 'order': order_serializer.data
                 },
                 status=status.HTTP_200_OK
                 )
             else:
                 return Response(data={
                     'error': 'This product is not in your cart',
-                    'order': order_serializer.data
+                    'cart': order_serializer.data.get('order_items')
                 },
                 status=status.HTTP_404_NOT_FOUND
                 )
@@ -267,160 +302,14 @@ class RemoveSingleItemView(generics.CreateAPIView):
             # deletes order from Order model if order_items is empty
             if not order.order_items.all():
                 order.delete()
-                return Response({'error': 'No active order'})
+                return Response(data={
+                    'error': 'No active order',
+                    },
+                status=status.HTTP_404_NOT_FOUND
+                )
         
         return Response(data={
-            'error': 'You do not have an active order',
-        })
-
-
-# def add_to_cart(request, slug):
-#     item = get_object_or_404(Product, slug=slug)
-#     order_product, created = OrderProduct.objects.get_or_create(
-#         product=item,
-#         user=request.user,
-#         ordered=False
-#     )
-#     order_qs = Order.objects.filter(user=request.user, ordered=False)
-#     if order_qs.exists():
-#         order = order_qs[0]
-#         # check if the order item is in the order
-#         if order.order_items.filter(product__slug=item.slug).exists():
-#             order_item.quantity += 1
-#             order_item.save()
-
-#             return Response(data={'message': 'This item has been updated'}, status=status.HTTP_200_OK)
-#         else:
-#             order.order_items.add(order_item)
-#             return Response(data={
-#                 'message': 'This product has been added to your cart',
-#                 'cart' : order,
-#                 }, 
-#                 status=status.HTTP_201_CREATED
-#                 )
-#     else:
-#         order = Order.objects.create(
-#             user=request.user,
-#         )
-#         order.order_items.add(order_item)
-#         return Response(data={
-#             'message': 'This product has been added to your cart',
-#             'cart': order
-#             },
-#             status=status.HTTP_201_CREATED
-#         )
-
-# @login_required
-# def remove_from_cart(request, slug):
-#     item = get_object_or_404(Product, slug=slug)
-#     order_qs = Order.objects.filter(user=request.user, ordered=False)
-#     if order_qs.exists():
-#         order = order_qs[0]
-
-#         # check if the order product is in the order
-#         if order.order_items.filter(product__slug=item.slug):
-#             order_item = OrderProduct.objects.filter(
-#                 product=item,
-#                 user=request.user,
-#             )[0]
-#             order.order_items.remove(order_item)
-#             order_item.delete()
-
-#             return Response(data={
-#             'message': 'This product has been removed to your cart',
-#             'cart': order
-#             },
-#             status=status.HTTP_201_CREATED
-#             )
-#         else:
-#             return Response(data={
-#                 'error': 'This product is not in your cart',
-#                 'cart': order
-#             },
-#             status=status.HTTP_404_NOT_FOUND
-#             )
-#     return Response(data={
-#         'error': 'You do not have an active order' 
-#     })
-
-# @login_required
-# def remove_single_item_from_cart(request, slug):
-#     item = get_object_or_404(Product, slug=slug)
-#     order_qs = Order.objects.filter(user=request.user, ordered=False)
-#     if order_qs.exists():
-#         order = order_qs[0]
-
-#         #check if the order product is in the order
-#         if order.order_items.filter(product__slug=item.slug).exists():
-#             order_item = OrderProduct.objects.filter(
-#                 order_item = item,
-#                 user = request.user
-#             )[0]
-#             if order_item.quantity > 1:
-#                 order_item.quantity -= 1
-#                 order_item.save()
-#             else:
-#                 order.order_items.remove(order_item)
-#             return Response(data={
-#                 'message': 'This product quantity has been updated',
-#                 'cart': order
-#             },
-#             status=status.HTTP_200_OK
-#             )
-#         else:
-#             return Response(data={
-#                 'error': 'This product is not in your cart',
-#                 'cart': order
-#             },
-#             status=status.HTTP_404_NOT_FOUND
-#             )
-#     return Response(data={
-#         'error': 'You do not have an active order',
-#     })
-
-
-# def update_product_unit(product_id, unit):
-#     product = Product.objects.select_for_update().filter(id=product_id)
-
-#     with transaction.atomic():
-#         if product.quantity - unit < 0:
-#             raise ValueError('You are trying to order more than what is currently available')
-#         product.quantity = product.quantity - unit
-#         return product
-
-# def add_to_cart(self, request):
-#     items = Order.objects.select_for_update().filter(author=request.user)
-#     cart = Order.objects.create(
-#                 user=self.request.user, 
-#                 order_items=self.request.data['product'],
-#                 )
-# class OrderProductViewset(viewsets.ModelViewSet):
-#     queryset = OrderProduct.objects.all()
-#     serializer_class = serializers.OrderProductSerializer
-#     permission_classes = (IsOwner,)
-
-#     def get_queryset(self):
-#         user = self.request.user
-#         return OrderProduct.objects.filter(user=user)
-
-#     def list(self, request):
-#         serializer = self.serializer_class(self.get_queryset(), many=True)
-#         return Response(data=serializer.data, status=status.HTTP_200_OK)
-
-#     def create(self, request):
-#         data = self.request.data
-#         # data['user'] = request.user.id
-#         serializer = self.serializer_class(data=data, context={'request': request})
-
-#         if serializer.is_valid(raise_exception=True):
-
-#             # product = Product.objects.get(id=request.data['product'])
-#             update_product_unit(self.request.data['product'].id, self.request.data['unit'])
-#             serializer.save()
-#             cart = ''
-#             Product.refresh_from_db()
-#             Order.refresh_from_db()
-#             if cart:
-#                 return Response(data=serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            'error': 'No active order'},
+            status=status.HTTP_404_NOT_FOUND
+            )
 
