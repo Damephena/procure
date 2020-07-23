@@ -17,7 +17,7 @@ class OrderProduct(models.Model):
     ordered = models.BooleanField(default=False, blank=True)
 
     def __str__(self):
-        return self.user.first_name + ': ' + self.product.name
+        return self.user.first_name + ': ' + str(self.product.name)
 
     def get_item_price(self):
         return self.quantity * (self.product.regular_price - self.product.discount_price)
@@ -42,8 +42,8 @@ class Order(models.Model):
     def get_ref_code(self):
         return self.ref_code
 
-    def __str__(self):
-        self.user.last_name #+ ' : ' #+ str(self.ordered)
+    # def __str__(self):
+    #     self.id
 
     def get_total(self):
         self.calc = [product.get_item_price() for product in self.order_items.all()]
@@ -71,4 +71,4 @@ class Refund(models.Model):
     email = models.EmailField()
 
     def __str__(self):
-        return self.email + ': ' + self.order.get_total()
+        return self.email + ': ' + str(self.order.get_total())
