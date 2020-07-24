@@ -38,27 +38,13 @@ class CheckoutSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = '__all__'
-        # exclude = ['updated_at']
-        # extra_kwargs = {
-        #     'total_pricess': 'total',
-        #     'items_quantity': 'items_quantity'
-        # }
 
     def get_total(self, obj):
         return obj.get_total()
     
     def get_items_quantity(self, obj):
         return obj.get_items_quantity()
-        
-# class CurrentUserDefault(object):
-#     def set_context(self, serializer_field):
-#         self.user_id = serializer_field.context['request'].user.id
 
-#     def __call__(self):
-#         return self.user_id
-
-#     def __repr__(self):
-#         return unicode_to_repr('%s()' % self.__class__.__name__)
 
 
 class OrderSerializer(serializers.ModelSerializer):
