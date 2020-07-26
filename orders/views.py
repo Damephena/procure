@@ -16,14 +16,22 @@ from utils.permissions import IsOwner, AnonCreateAndUpdateOwnerOnly
 
 
 class OrderSummaryView(generics.ListAPIView):
-    serializer_class = serializers.OrderSerializer
-    queryset = Order.objects.all()
+    serializer_class = serializers.OrderProductSerializer
+    queryset = OrderProduct.objects.all()
 
     def get(self, request):
-        order = Order.objects.get(user=self.request.user, ordered=False)
-        order.refresh_from_db()
-        serializer = self.serializer_class(order, many=False)
+        order_product = OrderProduct.objects.get(user=self.request.user, ordered=False)
+        order_product.refresh_from_db()
+        serializer = self.serializer_class(order_product, many=False)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
+    # serializer_class = serializers.OrderSerializer
+    # queryset = Order.objects.all()
+
+    # def get(self, request):
+    #     order = Order.objects.get(user=self.request.user, ordered=False)
+    #     order.refresh_from_db()
+    #     serializer = self.serializer_class(order, many=False)
+    #     return Response(data=serializer.data, status=status.HTTP_200_OK)
 
 
 
