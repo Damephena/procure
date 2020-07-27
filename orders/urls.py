@@ -11,7 +11,9 @@ urlpatterns = [
     path('add-to-cart/<slug>/', view.AddToCartView.as_view(), name='cart-add'),
     path('remove-from-cart/<slug>/', view.RemoveFromCartView.as_view(), name='cart-remove'),
     path('remove-item-from-cart/<slug>/', view.RemoveSingleItemView.as_view(), name='cart-remove-single-item'),
-    # path('payment/<payment_option>/', view.PaymentView.as_view(), name='payment'),
+    path('payment/', view.PaymentView.as_view(), name='payment'),
+    path('payment/banks/', view.BankListView.as_view(), name='bank-list'),
+    # path('payment/<ref_code>/', view.Charge.as_view(), name='submit-otp'),
 ]
 
 urlpatterns += router.urls
