@@ -8,12 +8,12 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
 import orders.serializers as serializers
-from orders.models import OrderProduct, Order
+from orders.models import OrderProduct, Order, Payment
 
 from products.models import Product
 from accounts.models import Address
 from utils.permissions import IsOwner, AnonCreateAndUpdateOwnerOnly
-
+from utils.paystack import Transaction, list_bank, verify_payment
 
 class OrderSummaryView(generics.ListAPIView):
     serializer_class = serializers.OrderProductSerializer
@@ -24,15 +24,6 @@ class OrderSummaryView(generics.ListAPIView):
         order_product.refresh_from_db()
         serializer = self.serializer_class(order_product, many=False)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
-    # serializer_class = serializers.OrderSerializer
-    # queryset = Order.objects.all()
-
-    # def get(self, request):
-    #     order = Order.objects.get(user=self.request.user, ordered=False)
-    #     order.refresh_from_db()
-    #     serializer = self.serializer_class(order, many=False)
-    #     return Response(data=serializer.data, status=status.HTTP_200_OK)
-
 
 
 class CheckoutView(generics.ListAPIView):
@@ -56,7 +47,7 @@ class CheckoutView(generics.ListAPIView):
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
 
-class AddressCreateView(generics.CreateAPIView):
+class AddressCreateView(generics.ListCreateAPIView):
     serializer_class = serializers.AddressSerializer
 
     def post(self, request):
@@ -73,7 +64,66 @@ class AddressUpdateView(generics.RetrieveUpdateAPIView):
     lookup_field = 'user'
 
 
-# class PaymentViewSet(viewsets.ModelViewSet):
+class PaymentView(generics.CreateAPIView):
+    serializer_class = serializers.TransactionChargeSerializer
+
+    def post(self, request):
+        order_query = Order.objects.filter(user=self.request.user, ordered=False)
+
+        if order_query.exists():
+            order = order_query[0]
+            total_price = order.get_total()
+
+            # initialize payment
+            trans = Transaction(
+                self.request.user.email,
+                total_price
+            )
+            initialize_transaction = trans.initialize_transaction()
+
+            if initialize_transaction:
+                order.ref_code = initialize_transaction['data']['reference']
+                order.save()
+
+                return Response({
+                'data': initialize_transaction['data'],
+                'message': initialize_transaction['message']
+                }, 
+                status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    'message': initialize_transaction['message']
+                },
+                status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
+
+class VerifyPaymentView(generics.CreateAPIView):
+    serializer_class = serializers.VerifyPaymentSerializer
+
+    def post(self, request):
+        order_query = Order.objects.filter(user=self.request.user, ref_code=self.request.data['reference'], ordered=False)
+
+        if order_query.exists():
+            order = order_query[0]
+
+            verify = verify_payment(order.ref_code)
+
+            if verify['data']['status'] == 'success':
+                payment = Payment.objects.create(
+                    user=self.request.user,
+                    stripe_charge_id=verify['data']['id'],
+                    amount=verify['data']['amount']/100
+                )
+                order.ordered = True
+                order.payment = payment
+                order.save()
+
+                return Response({'message': 'Payment confirmed successfully!'}, status=status.HTTP_200_OK)
+            else:
+                return Response(verify_payment, status=status.HTTP_402_PAYMENT_REQUIRED)
+        return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
 class PaymentViewSet(generics.ListCreateAPIView):
     serializer_class = serializers.PaymentSerializer
 
@@ -148,7 +198,7 @@ class PaymentViewSet(generics.ListCreateAPIView):
                 payment = Payment.objects.create(
                     stripe_charge_id = charge['id'],
                     user=self.request.user,
-                    amount= order.get.total()
+                    amount= order.get_total()
                 )
 
                 # assign payment to the order
