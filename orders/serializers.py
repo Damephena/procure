@@ -30,6 +30,15 @@ class PaymentSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class TransactionChargeSerializer(serializers.Serializer):
+    bank_code = serializers.CharField(max_length=10, help_text="Bank code from list of banks API endpoint")
+    bank_account = serializers.CharField(max_length=15, help_text="Enter bank account for transaction")
+
+
+class VerifyPaymentSerializer(serializers.Serializer):
+    reference = serializers.CharField(max_length=50)
+
+
 class CheckoutSerializer(serializers.ModelSerializer):
     order_items = OrderProductSerializer(many=True, read_only=True)
     total = serializers.SerializerMethodField()
@@ -44,7 +53,6 @@ class CheckoutSerializer(serializers.ModelSerializer):
     
     def get_items_quantity(self, obj):
         return obj.get_items_quantity()
-
 
 
 class OrderSerializer(serializers.ModelSerializer):
