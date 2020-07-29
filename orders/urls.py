@@ -1,7 +1,5 @@
-from django.urls import path, re_path, include
-from rest_framework.routers import SimpleRouter, DefaultRouter
+from django.urls import path
 import orders.views as view
-router = SimpleRouter()
 
 urlpatterns = [
     path('checkout/', view.CheckoutView.as_view(), name='checkout'),
@@ -13,6 +11,6 @@ urlpatterns = [
     path('remove-item-from-cart/<slug>/', view.RemoveSingleItemView.as_view(), name='cart-remove-single-item'),
     path('payment/', view.PaymentView.as_view(), name='payment'),
     path('payment/verify/', view.VerifyPaymentView.as_view(), name='verify-payment'),
+    path('history/', view.OrderHistory.as_view(), name='order-history'),
+    path('request-refund/', view.RequestRefundView.as_view(), name='request-refund'),
 ]
-
-urlpatterns += router.urls
