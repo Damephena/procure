@@ -10,7 +10,6 @@ class Category(models.Model):
         ordering = ['name']
         verbose_name_plural = 'categories'
 
-
     def __str__(self):
         return self.name
 
@@ -33,7 +32,8 @@ class Coupon(models.Model):
 
 class ProductStatus(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    
+
+
     class Meta:
         ordering = ['name']
         verbose_name_plural = 'product statuses'
@@ -45,9 +45,9 @@ class ProductStatus(models.Model):
 class Tag(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
+
     class Meta:
         ordering = ['name']
-    
 
     def __str__(self):
         return self.name
