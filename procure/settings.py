@@ -26,9 +26,9 @@ AUTH_USER_MODEL = 'accounts.User'
 SECRET_KEY = os.environ.get('PROCURE_SECRET')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = (os.environ.get('DEBUG_VALUE') == 'True')
-# DEBUG = os.environ.get('DEBUG_VALUE')
-DEBUG = True
+DEBUG = (os.environ.get('DEBUG_VALUE') == 'True')
+
+# DEBUG = True
 ALLOWED_HOSTS = ['localhost', 'buyy.herokapp.com']
 
 CSRF_COOKIE_SECURE = True
