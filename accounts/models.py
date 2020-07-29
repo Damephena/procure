@@ -48,7 +48,7 @@ class Address(models.Model):
         ('M', 'Male'),
         ('N', 'Unspecified'),
     ]
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     phone_number = PhoneNumberField(blank=True, null=True, help_text='Eg +234, +233')
     # gender = models.CharField(max_length=1, choices=GENDER_CHOICES, default='N')
     address_line_1 = models.TextField()
@@ -64,4 +64,4 @@ class Address(models.Model):
         verbose_name_plural = 'Addresses'
 
     def __str__(self):
-        return self.user.first_name #+ ':' + self.state
+        return self.user.first_name

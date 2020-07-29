@@ -1,5 +1,4 @@
 import uuid
-import secrets
 from django.db import models
 from procure import settings
 
@@ -30,7 +29,6 @@ class Order(models.Model):
     shipping_address = models.ForeignKey(Address, on_delete=models.SET_NULL, blank=True, null=True)
     payment = models.ForeignKey('Payment', on_delete=models.SET_NULL, blank=True, null=True)
     order_items = models.ManyToManyField(OrderProduct)
-    description = models.TextField(blank=True, null=True, help_text='Name your order. Eg: Urgent purchases')
     ordered = models.BooleanField(default=False, blank=True)
     being_delivered = models.BooleanField(default=False)
     received = models.BooleanField(default=False)
@@ -42,21 +40,17 @@ class Order(models.Model):
     def get_ref_code(self):
         return self.ref_code
 
-    # def __str__(self):
-    #     self.id
-
     def get_total(self):
-        self.calc = [product.get_item_price() for product in self.order_items.all()]
-        return sum(self.calc)
-    
+        calc = [product.get_item_price() for product in self.order_items.all()]
+        return sum(calc)
+
     def get_items_quantity(self):
         return sum([product.quantity for product in self.order_items.all()])
 
 
 class Payment(models.Model):
-    stripe_charge_id = models.CharField(max_length=50)
+    paystack_id = models.CharField(max_length=60)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, blank=True, null=True)
-    # order = models.ForeignKey('Order', on_delete=models.SET_NULL, blank=True, null=True)
     amount = models.FloatField()
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -65,10 +59,10 @@ class Payment(models.Model):
 
 
 class Refund(models.Model):
-    order = models.ForeignKey('Order', on_delete=models.CASCADE)
+    order = models.OneToOneField('Order', on_delete=models.CASCADE)
     reason = models.TextField()
     accepted = models.BooleanField(default=False)
     email = models.EmailField()
 
     def __str__(self):
-        return self.email + ': ' + str(self.order.get_total())
+        return self.email

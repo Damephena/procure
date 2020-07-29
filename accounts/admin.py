@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.utils.translation import ugettext_lazy as _
 
 from accounts.models import User, Address
-# Register your models here.
+
 
 class UserAdmin(DjangoUserAdmin):
     """Define admin model for custom User model with no email field."""
