@@ -53,18 +53,19 @@ class CheckoutView(generics.ListAPIView):
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
 
-class AddressCreateView(generics.ListCreateAPIView):
+class AddressCreateView(generics.CreateAPIView):
     '''
     Add Address to enable delivery.
     '''
     serializer_class = serializers.AddressSerializer
+    queryset = Address.objects.all()
 
     def post(self, request):
         address = Address.objects.filter(user=self.request.user)
         if address.exists():
             return Response({"error": "You already have an address. Edit it"}, status=status.HTTP_406_NOT_ACCEPTABLE)
 
-        serializer = self.serializer_class(data=request.data)
+        serializer = self.serializer_class(data=self.request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save(user=self.request.user)
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
@@ -158,7 +159,6 @@ class VerifyPaymentView(generics.CreateAPIView):
         return Response({'error': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
-
 class OrderHistory(generics.ListAPIView):
     '''
     Returns all orders that has been paid for.
@@ -205,7 +205,7 @@ class AddToCartView(generics.CreateAPIView):
                 return Response(data={
                     'message': 'This product has been added to your cart',
                     'cart' : cart_serializer.data,
-                    }, 
+                    },
                     status=status.HTTP_201_CREATED
                     )
         else:
@@ -213,11 +213,11 @@ class AddToCartView(generics.CreateAPIView):
                 user=request.user,
             )
             order.order_items.add(order_item)
-            order_serializer = self.serializer_class[0](order)
+            order_serializer = self.serializer_class[0](data=order)
 
             if order_serializer.is_valid(raise_exception=True):
                 order_serializer.save()
-                cart_serializer = self.serializer_class[1](order_item)
+                cart_serializer = self.serializer_class[1](data=order_item)
                 return Response(data={
                     'message' : 'New cart has been created',
                     'cart': cart_serializer.data,
@@ -248,7 +248,7 @@ class RemoveFromCartView(generics.CreateAPIView):
                 order.order_items.remove(order_item)
                 order_item.delete()
 
-                cart_serializer = self.serializer_class[1](order_item)
+                cart_serializer = self.serializer_class[1](data=order_item)
                 return Response(data={
                 'message': 'This product has been removed to your cart',
                 'cart': cart_serializer.data,
@@ -256,14 +256,14 @@ class RemoveFromCartView(generics.CreateAPIView):
                 status=status.HTTP_200_OK
                 )
 
-            order_serializer = self.serializer_class[0](order)
+            order_serializer = self.serializer_class[0](data=order)
             return Response(data={
                 'error': 'This product is not in your cart',
                 'cart': order_serializer.data.get('order_items')
             },
             status=status.HTTP_404_NOT_FOUND
             )
-        order_serializer = self.serializer_class[0](order_qs)
+        order_serializer = self.serializer_class[0](data=order_qs)
         return Response(data={
             'error': 'You do not have an active order',
             'order': order_serializer.data
@@ -358,4 +358,3 @@ class RequestRefundView(generics.CreateAPIView):
                 status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-

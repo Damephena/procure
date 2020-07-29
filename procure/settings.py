@@ -26,9 +26,9 @@ AUTH_USER_MODEL = 'accounts.User'
 SECRET_KEY = os.environ.get('PROCURE_SECRET')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = (os.environ.get('DEBUG_VALUE') == 'True')
-# DEBUG = os.environ.get('DEBUG_VALUE')
-DEBUG = True
+DEBUG = (os.environ.get('DEBUG_VALUE') == 'True')
+
+# DEBUG = False
 ALLOWED_HOSTS = ['localhost', 'buyy.herokapp.com']
 
 CSRF_COOKIE_SECURE = True
@@ -269,6 +269,8 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
+SESSION_COOKIE_SECURE = True
+
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
@@ -278,7 +280,7 @@ AWS_S3_REGION_NAME = 'eu-west-2'
 AWS_S3_FILE_OVERWRITE = False
 AWS_DEFAULT_ACL = None
 AWS_S3_VERIFY = True
-# AWS_S3_OBJECT_PARAMETERS = { 'CacheControl': 'max-age=86400' }
+
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 # ACCOUNT_ADAPTER = 'accounts.adapters.CustomUserAccountAdapter'
 
