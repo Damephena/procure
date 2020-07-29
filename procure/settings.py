@@ -28,7 +28,7 @@ SECRET_KEY = os.environ.get('PROCURE_SECRET')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = (os.environ.get('DEBUG_VALUE') == 'True')
 
-# DEBUG = True
+# DEBUG = False
 ALLOWED_HOSTS = ['localhost', 'buyy.herokapp.com']
 
 CSRF_COOKIE_SECURE = True
@@ -268,6 +268,8 @@ SOCIALACCOUNT_PROVIDERS = {
         }
     }
 }
+
+SESSION_COOKIE_SECURE = True
 
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
