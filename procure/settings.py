@@ -31,7 +31,7 @@ DEBUG = (os.environ.get('DEBUG_VALUE') == 'True')
 # DEBUG = False
 ALLOWED_HOSTS = ['localhost', 'buyy.herokapp.com']
 
-CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = False
 # Application definition
 
 INSTALLED_APPS = [
