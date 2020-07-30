@@ -31,7 +31,7 @@ DEBUG = (os.environ.get('DEBUG_VALUE') == 'True')
 # DEBUG = False
 ALLOWED_HOSTS = ['localhost', 'buyy.herokapp.com']
 
-CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = False
 # Application definition
 
 INSTALLED_APPS = [
@@ -186,7 +186,7 @@ REST_FRAMEWORK = {
 
     # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 2
+    'PAGE_SIZE': 30
     # 'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }
 
