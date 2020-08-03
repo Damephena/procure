@@ -1,11 +1,10 @@
 from django.http import Http404
 from django.contrib.auth import get_user_model
-from django.shortcuts import render, reverse, redirect
+from django.shortcuts import reverse, redirect
 
-from rest_framework import viewsets, generics, status
+from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAdminUser
-# from rest_auth.registration.views import RegisterView
+from rest_framework.permissions import IsAdminUser, AllowAny
 from allauth.account.views import ConfirmEmailView
 from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
 from allauth.socialaccount.providers.twitter.views import TwitterOAuthAdapter
@@ -16,26 +15,15 @@ from rest_auth.social_serializers import TwitterLoginSerializer
 from rest_auth.registration.serializers import SocialLoginSerializer
 
 import accounts.serializers as serializers
-from accounts.models import User
+
 
 class UserProfile(generics.ListAPIView):
     '''Returns the requesting user's profile'''
     serializer_class = serializers.UserSerializer
 
     def get(self, request):
-        queryset = get_user_model().objects.get(id=request.user.id)
-        
-        serializer = serializers.UserSerializer(queryset, many=False)
+        serializer = self.serializer_class(request.user, many=False)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
-
-
-# class UserViewSet(viewsets.ModelViewSet):
-#     '''
-#     Exposes API endpoint for Admin access only for `User` model.
-#     '''
-#     queryset = User.objects.all()
-#     serializer_class = serializers.UserCompleteInfo
-#     permission_classes = (IsAdminUser, )
 
 
 class AllUsersView(generics.ListAPIView):
@@ -44,9 +32,23 @@ class AllUsersView(generics.ListAPIView):
     permission_classes = (IsAdminUser, )
 
     def get(self, request):
-        queryset = User.objects.filter(is_staff=False)
-        serializer = serializers.UserCompleteInfo(queryset, many=True)
+        queryset = get_user_model().objects.filter(is_staff=False)
+        serializer = self.serializer_class(queryset, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+
+class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
+    '''Retrieve, Update or Delete a regular `user`. Only available to `admin` usertype.'''
+    look_up = 'pk'
+    serializer_class = serializers.UserCompleteInfo
+    queryset = get_user_model().objects.filter(is_staff=False)
+    permission_classes = (IsAdminUser,)
+
+
+class DeactivateUser(generics.UpdateAPIView):
+    '''
+    API endpoint to deactivate either a regular `user` or `admin` user. Only available to `admin` usertype.
+    '''
 
 
 class AllAdminsView(generics.ListAPIView):
@@ -57,53 +59,43 @@ class AllAdminsView(generics.ListAPIView):
     permission_classes = (IsAdminUser,)
 
     def get(self, request):
-        queryset = User.objects.filter(is_staff=True)
-        serializer = serializers.UserCompleteInfo(queryset, many=True)
+        queryset = get_user_model().objects.filter(is_staff=True)
+        serializer = self.serializer_class(queryset, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+
+class AdminDetailView(generics.RetrieveUpdateDestroyAPIView):
+    '''
+    Retrieve, Update or Delete an `admin` usertype. Only available to other `admin` usertypes.
+    '''
+    look_up = 'pk'
+    serializer_class = serializers.UserCompleteInfo
+    queryset = get_user_model().objects.filter(is_staff=True)
+    permission_classes = (IsAdminUser,)
 
 
 class RegisterAdminView(generics.CreateAPIView):
     '''
     API endpoint for admin registration.
     '''
-    queryset = User.objects.all()
+    queryset = get_user_model().objects.all()
     serializer_class = serializers.AdminRegisterSerializer
+    permission_classes = (AllowAny, )
 
     def post(self, request):
-        serializer = serializers.AdminRegisterSerializer(data=request.data)
+        serializer = self.serializer_class(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(data=serializer.data, status=status.HTTP_201_CREATED)
-        return Response(data=serializer._errors)   
-
-
-class UserView(generics.RetrieveUpdateDestroyAPIView):
-    pass
+        return Response(data=serializer.errors)
 
 
 class CustomConfirmEmailView(ConfirmEmailView):
+    '''View for creating custom email verification'''
     def get(self, *args, **kwargs):
         try:
             self.object = self.get_object()
         except Http404:
             self.object = None
-        user = get_user_model().objects.get(email=self.object.email_address.email)
-        # redirect_url = reverse('rest_login', args=(user.id,))
         redirect_url = reverse('rest_login')
         return redirect(redirect_url)
-
-
-class GoogleLogin(SocialLoginView):
-    adapter_class = GoogleOAuth2Adapter
-    client_class = OAuth2Client
-    callback_url = "http://localhost:8000/social-accounts/google/login/callback/"
-    serializer_class = SocialLoginSerializer
-
-
-class FacebookLogin(SocialLoginView):
-    adapter_class = FacebookOAuth2Adapter
-
-
-class TwitterLogin(SocialLoginView):
-    serializer_class = TwitterLoginSerializer
-    adapter_class = TwitterOAuthAdapter

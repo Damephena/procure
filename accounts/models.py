@@ -1,9 +1,13 @@
 import uuid
+
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.utils.translation import ugettext_lazy as _
 
-# from phonenumber_field.modelfields import PhoneNumberField
+from phonenumber_field.modelfields import PhoneNumberField
+from django_countries.fields import CountryField
+
 from accounts.managers import CustomManager
 
 
@@ -29,7 +33,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name_plural = _('users')
 
     def __str__(self):
-        return self.get_full_name() + '-' + self.get_email()
+        return self.email
 
     def get_full_name(self):
         return self.first_name +' '+ self.last_name
@@ -37,21 +41,27 @@ class User(AbstractBaseUser, PermissionsMixin):
     def get_short_name(self):
         return self.first_name
 
-    def get_email(self):
-        return self.email
 
-# class Role(models.Model):
-#     id
-#     name
-#     created_at
-#     updated_at
+class Address(models.Model):
+    GENDER_CHOICES = [
+        ('F', 'Female'),
+        ('M', 'Male'),
+        ('N', 'Unspecified'),
+    ]
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    phone_number = PhoneNumberField(blank=True, null=True, help_text='Eg +234, +233')
+    # gender = models.CharField(max_length=1, choices=GENDER_CHOICES, default='N')
+    address_line_1 = models.TextField()
+    address_line_2 = models.TextField(blank=True, null=True)
+    address_line_3 = models.TextField(blank=True, null=True)
+    address_line_4 = models.TextField(blank=True, null=True)
+    town_city = models.TextField(help_text='Enter residing city or town')
+    state = models.CharField(max_length=50)
+    country = CountryField(blank_label='(select country)', multiple=False)
 
-# class UserRole(models.Model):
-#     user
-#     role
-#     created_at
-#     updated_at
 
-# class Address(models.Model):
-#     customer = models.ForeignKey('User', on_delete=models.CASCADE, to_field='id')
-#     phone_number = PhoneNumberField(blank=True, null=True)
+    class Meta:
+        verbose_name_plural = 'Addresses'
+
+    def __str__(self):
+        return self.user.first_name

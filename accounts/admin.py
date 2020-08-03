@@ -2,8 +2,8 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.utils.translation import ugettext_lazy as _
 
-from accounts.models import User
-# Register your models here.
+from accounts.models import User, Address
+
 
 class UserAdmin(DjangoUserAdmin):
     """Define admin model for custom User model with no email field."""
@@ -32,3 +32,4 @@ class UserAdmin(DjangoUserAdmin):
     filter_horizontal = ('groups', 'user_permissions',)
 
 admin.site.register(User)
+admin.site.register(Address)

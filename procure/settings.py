@@ -26,11 +26,12 @@ AUTH_USER_MODEL = 'accounts.User'
 SECRET_KEY = os.environ.get('PROCURE_SECRET')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = (os.environ.get('DEBUG_VALUE') == 'True')
-DEBUG = os.environ.get('DEBUG_VALUE')
+DEBUG = (os.environ.get('DEBUG_VALUE') == 'True')
+
+# DEBUG = False
 ALLOWED_HOSTS = ['localhost', 'buyy.herokapp.com']
 
-CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = False
 # Application definition
 
 INSTALLED_APPS = [
@@ -56,18 +57,23 @@ INSTALLED_APPS = [
     'drf_yasg',
     'django_filters',
     'corsheaders',
+    'storages',
+    'django_countries',
 
     # local
     'accounts',
+    'products',
+    'orders',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'corsheaders.middleware.CorsPostCsrfMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -150,8 +156,14 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 CORS_ORIGIN_WHITELIST = (
     'google.com',
-    'buyy.herokuapp.com',
-    # 'hostname.example.com'
+    'localhost',
+    'http://buyy.herokuapp.com',
+    'https://shirt-shop.netlify.app',
+    'https://buyy.s3.eu-west-2.amazonaws.com',
+)
+
+CSRF_TRUSTED_ORIGINS = (
+    'shirt-shop.netlify.app',
 )
 
 REST_FRAMEWORK = {
@@ -162,15 +174,20 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
-    # 'DEFAULT_FILTER_BACKENDS': (
-    #     'django_filters.rest_framework.DjangoFilterBackend'
-    # ),
-    'TEST_REQUEST_RENDERER_CLASSES': [
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ),
+    'TEST_REQUEST_RENDERER_CLASSES': (
         'rest_framework.renderers.MultiPartRenderer',
         'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.TemplateHTMLRenderer'
-    ],
+        'rest_framework.renderers.TemplateHTMLRenderer',
+    ),
 
+    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 30
     # 'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }
 
@@ -253,5 +270,20 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
+SESSION_COOKIE_SECURE = True
+
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
+
+AWS_S3_SIGNATURE_VERSION = 's3v4'
+AWS_S3_REGION_NAME = 'eu-west-2'
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = None
+AWS_S3_VERIFY = True
+
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 # ACCOUNT_ADAPTER = 'accounts.adapters.CustomUserAccountAdapter'
+
+PAYSTACK_TEST_KEY = os.getenv('PAYSTACK_TEST_KEY')
 django_heroku.settings(locals())
