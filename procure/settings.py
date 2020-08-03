@@ -155,10 +155,13 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 CORS_ORIGIN_WHITELIST = (
-    'google.com',
-    'localhost',
+    'https://google.com',
     'http://buyy.herokuapp.com',
+    'https://buyy.herokuapp.com',
+    'http://localhost:8080',
+    'http://127.0.0.1:8080',
     'https://shirt-shop.netlify.app',
+    'http://shirt-shop.netlify.app',
     'https://buyy.s3.eu-west-2.amazonaws.com',
 )
 
