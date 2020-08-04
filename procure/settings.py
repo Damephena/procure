@@ -154,20 +154,22 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-CORS_ORIGIN_WHITELIST = (
-    'https://google.com',
-    'http://buyy.herokuapp.com',
-    'https://buyy.herokuapp.com',
-    'http://localhost:8080',
-    'http://127.0.0.1:8080',
-    'https://shirt-shop.netlify.app',
-    'http://shirt-shop.netlify.app',
-    'https://buyy.s3.eu-west-2.amazonaws.com',
-)
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
 
-CSRF_TRUSTED_ORIGINS = (
+# CORS_ORIGIN_WHITELIST = [
+#     'http://buyy.herokuapp.com',
+#     'https://buyy.herokuapp.com',
+#     'http://localhost:8080',
+#     'http://127.0.0.1:8080',
+#     'https://shirt-shop.netlify.app',
+#     'http://shirt-shop.netlify.app',
+#     'https://buyy.s3.eu-west-2.amazonaws.com'
+# ]
+
+CSRF_TRUSTED_ORIGINS = [
     'shirt-shop.netlify.app',
-)
+]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
