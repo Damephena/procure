@@ -6,7 +6,7 @@ This is an e-commerce backend built with Django Rest Framework which has the cor
 
 - Product
 - Order
-- Payment (including a channel for Refund)
+- Payment (including a endpoint for Refund)
 - Authentication
 
 ### API endpoints documentation
