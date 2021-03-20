@@ -34,7 +34,7 @@ idna==2.9
 inflection==0.5.0
 itypes==1.2.0
 jedi
-Jinja2==2.11.2
+Jinja2==2.11.3
 jmespath==0.10.0
 Markdown==3.2.2
 MarkupSafe==1.1.1
